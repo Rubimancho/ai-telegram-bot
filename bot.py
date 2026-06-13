@@ -61,8 +61,7 @@ class TechNewsBot:
             if news_item.text:
                 text += f"{self._escape_html(news_item.text)}\n\n"
             
-            text += f"🔗 <a href=\"{news_item.url}\">Читать далее</a>"
-            text += "\n\n#технологии #новости #IT"
+            text += "#технологии #новости"
             
             if news_item.image_url:
                 image = await self.download_image(news_item.image_url)

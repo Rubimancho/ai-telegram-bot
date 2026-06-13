@@ -206,8 +206,17 @@ class NewsCollector:
                     if not self._is_relevant(full_text):
                         continue
                     
-                    # Очищаем текст
-                    clean_text = self._clean_html(text)[:1500]
+                    # Берём полный текст из content, если есть
+                    content = entry.get('content', [{}])
+                    if content and isinstance(content, list):
+                        full_content = content[0].get('value', '')
+                    else:
+                        full_content = text
+                    
+                    if len(full_content) > len(text):
+                        clean_text = self._clean_html(full_content)[:2000]
+                    else:
+                        clean_text = self._clean_html(text)[:2000]
                     
                     # Извлекаем изображение
                     image_url = self._extract_image(entry)
