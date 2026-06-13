@@ -88,16 +88,23 @@ class NewsCollector:
         return text.strip()
     
     def _extract_image(self, soup_element) -> Optional[str]:
-        img = soup_element.find('img', class_='tgme_widget_message_photo')
-        if img and img.get('src'):
-            return img['src']
-        
-        img = soup_element.find('a', class_='tgme_widget_message_link_preview')
-        if img:
-            style = img.get('style', '')
+        photo_wrap = soup_element.find('a', class_='tgme_widget_message_photo_wrap')
+        if photo_wrap:
+            style = photo_wrap.get('style', '')
             match = re.search(r'url\(["\']?(.*?)["\']?\)', style)
             if match:
                 return match.group(1)
+        
+        link_preview = soup_element.find('a', class_='tgme_widget_message_link_preview')
+        if link_preview:
+            style = link_preview.get('style', '')
+            match = re.search(r'url\(["\']?(.*?)["\']?\)', style)
+            if match:
+                return match.group(1)
+        
+        img = soup_element.find('img', class_='tgme_widget_message_photo')
+        if img and img.get('src'):
+            return img['src']
         
         return None
     
