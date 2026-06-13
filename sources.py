@@ -46,6 +46,7 @@ class NewsCollector:
             "rozetked",
             "tbtech",
             "androidinsider",
+            "3dnews",
             
             # Игры
             "igromania",
