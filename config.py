@@ -7,7 +7,7 @@ BOT_TOKEN = os.getenv("BOT_TOKEN", "") or os.getenv("TELEGRAM_BOT_TOKEN", "")
 CHANNEL_ID = os.getenv("CHANNEL_ID", "")
 
 # Интервал проверки новостей (в секундах)
-CHECK_INTERVAL = int(os.getenv("CHECK_INTERVAL", "1800"))  # 30 минут
+CHECK_INTERVAL = int(os.getenv("CHECK_INTERVAL", "60"))  # 1 минута
 
 # Максимальное количество новостей за один цикл
 MAX_NEWS_PER_CYCLE = int(os.getenv("MAX_NEWS_PER_CYCLE", "5"))
