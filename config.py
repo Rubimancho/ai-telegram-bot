@@ -10,10 +10,10 @@ CHANNEL_ID = os.getenv("CHANNEL_ID", "")
 CHECK_INTERVAL = int(os.getenv("CHECK_INTERVAL", "60"))  # 1 минута
 
 # Максимальное количество новостей за один цикл
-MAX_NEWS_PER_CYCLE = int(os.getenv("MAX_NEWS_PER_CYCLE", "5"))
+MAX_NEWS_PER_CYCLE = int(os.getenv("MAX_NEWS_PER_CYCLE", "3"))
 
 # Задержка между публикациями (в секундах)
-PUBLISH_DELAY = int(os.getenv("PUBLISH_DELAY", "5"))
+PUBLISH_DELAY = int(os.getenv("PUBLISH_DELAY", "15"))
 
 # Минимальная длина текста новости
 MIN_TEXT_LENGTH = int(os.getenv("MIN_TEXT_LENGTH", "50"))

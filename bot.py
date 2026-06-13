@@ -3,6 +3,7 @@ import logging
 import sys
 from telegram import Bot
 from telegram.constants import ParseMode
+from telegram.error import RetryAfter
 import aiohttp
 from io import BytesIO
 from typing import Optional
@@ -71,13 +72,6 @@ class TechNewsBot:
                             caption=caption[:1024],
                             parse_mode=ParseMode.HTML
                         )
-                        if body:
-                            full = f"<b>{title}</b>\n\n{body}\n\n{hashtag}"
-                            await self.bot.send_message(
-                                chat_id=CHANNEL_ID,
-                                text=full[:4096],
-                                parse_mode=ParseMode.HTML
-                            )
                         return True
                     except Exception as e:
                         logger.error(f"Error sending photo: {e}")
@@ -113,10 +107,18 @@ class TechNewsBot:
                         if self._shutdown:
                             break
                         
-                        if await self.publish_news(item):
-                            published += 1
-                            self.collector.mark_as_published(item)
-                            logger.info(f"Published: {item.title[:50]}...")
+                        try:
+                            if await self.publish_news(item):
+                                published += 1
+                                self.collector.mark_as_published(item)
+                                logger.info(f"Published: {item.title[:50]}...")
+                        except RetryAfter as e:
+                            logger.warning(f"Rate limited, waiting {e.retry_after} seconds")
+                            await asyncio.sleep(e.retry_after)
+                            if await self.publish_news(item):
+                                published += 1
+                                self.collector.mark_as_published(item)
+                                logger.info(f"Published (retry): {item.title[:50]}...")
                         
                         await asyncio.sleep(PUBLISH_DELAY)
                     
@@ -139,7 +141,10 @@ class TechNewsBot:
             await self.news_cycle()
         finally:
             logger.info("Bot stopped")
-            await self.bot.close()
+            try:
+                await self.bot.close()
+            except Exception:
+                pass
 
 
 async def health_check(request):
