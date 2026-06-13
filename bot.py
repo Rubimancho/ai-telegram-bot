@@ -61,11 +61,16 @@ class TechNewsBot:
             body = self._escape_html(news_item.text) if news_item.text else ""
             hashtag = "#технологии #новости"
             
+            links_text = ""
+            if news_item.links:
+                links_lines = [self._escape_html(link) for link in news_item.links[:3]]
+                links_text = "\n\n🔗 " + "\n".join(links_lines)
+            
             if news_item.image_url:
                 image = await self.download_image(news_item.image_url)
                 if image:
                     try:
-                        caption = f"<b>{title}</b>\n\n{hashtag}"
+                        caption = f"<b>{title}</b>\n\n{hashtag}{links_text}"
                         await self.bot.send_photo(
                             chat_id=CHANNEL_ID,
                             photo=image,
@@ -76,7 +81,7 @@ class TechNewsBot:
                     except Exception as e:
                         logger.error(f"Error sending photo: {e}")
             
-            full = f"<b>{title}</b>\n\n{body}\n\n{hashtag}" if body else f"<b>{title}</b>\n\n{hashtag}"
+            full = f"<b>{title}</b>\n\n{body}\n\n{hashtag}{links_text}" if body else f"<b>{title}</b>\n\n{hashtag}{links_text}"
             await self.bot.send_message(
                 chat_id=CHANNEL_ID,
                 text=full[:4096],

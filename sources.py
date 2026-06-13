@@ -17,10 +17,13 @@ class NewsItem:
     image_url: str = None
     source: str = ""
     published: datetime = None
+    links: list = None
     
     def __post_init__(self):
         if self.published is None:
             self.published = datetime.now()
+        if self.links is None:
+            self.links = []
         self.hash = hashlib.md5(f"{self.title}{self.url}".encode()).hexdigest()
 
 class NewsCollector:
@@ -88,6 +91,24 @@ class NewsCollector:
         text = re.sub(r'\s+', ' ', text)
         return text.strip()
     
+    def _extract_links(self, soup_element) -> list:
+        links = []
+        
+        text_el = soup_element.find('div', class_='tgme_widget_message_text')
+        if text_el:
+            for a in text_el.find_all('a', href=True):
+                href = a['href']
+                if href.startswith('http') and 't.me' not in href:
+                    links.append(href)
+        
+        link_preview = soup_element.find('a', class_='tgme_widget_message_link_preview')
+        if link_preview and link_preview.get('href'):
+            href = link_preview['href']
+            if href.startswith('http') and 't.me' not in href:
+                links.append(href)
+        
+        return list(dict.fromkeys(links))
+    
     def _extract_image(self, soup_element) -> Optional[str]:
         photo_wrap = soup_element.find('a', class_='tgme_widget_message_photo_wrap')
         if photo_wrap:
@@ -144,12 +165,15 @@ class NewsCollector:
                     
                     image_url = self._extract_image(msg)
                     
+                    post_links = self._extract_links(msg)
+                    
                     news_item = NewsItem(
                         title=title,
                         text=clean_text,
                         url=post_url,
                         image_url=image_url,
                         source=channel,
+                        links=post_links,
                     )
                     
                     if news_item.hash not in self.published_hashes:
