@@ -56,31 +56,36 @@ class TechNewsBot:
     
     async def publish_news(self, news_item: NewsItem) -> bool:
         try:
-            text = f"<b>{self._escape_html(news_item.title)}</b>\n\n"
-            
-            if news_item.text:
-                text += f"{self._escape_html(news_item.text)}\n\n"
-            
-            text += "#технологии #новости"
+            title = self._escape_html(news_item.title)
+            body = self._escape_html(news_item.text) if news_item.text else ""
+            hashtag = "#технологии #новости"
             
             if news_item.image_url:
                 image = await self.download_image(news_item.image_url)
                 if image:
                     try:
+                        caption = f"<b>{title}</b>\n\n{hashtag}"
                         await self.bot.send_photo(
                             chat_id=CHANNEL_ID,
                             photo=image,
-                            caption=text[:1024],
+                            caption=caption[:1024],
                             parse_mode=ParseMode.HTML
                         )
+                        if body:
+                            full = f"<b>{title}</b>\n\n{body}\n\n{hashtag}"
+                            await self.bot.send_message(
+                                chat_id=CHANNEL_ID,
+                                text=full[:4096],
+                                parse_mode=ParseMode.HTML
+                            )
                         return True
                     except Exception as e:
                         logger.error(f"Error sending photo: {e}")
-                        pass
             
+            full = f"<b>{title}</b>\n\n{body}\n\n{hashtag}" if body else f"<b>{title}</b>\n\n{hashtag}"
             await self.bot.send_message(
                 chat_id=CHANNEL_ID,
-                text=text[:4096],
+                text=full[:4096],
                 parse_mode=ParseMode.HTML
             )
             return True
