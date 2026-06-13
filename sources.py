@@ -27,6 +27,7 @@ class NewsCollector:
     def __init__(self):
         self.published_hashes_file = "published_news.json"
         self.published_hashes = self._load_published_hashes()
+        self._recent_texts = []
         
         self.channels = [
             # Пользовательские каналы
@@ -162,9 +163,43 @@ class NewsCollector:
         
         return news_items
     
+    def _is_similar(self, text1: str, text2: str) -> bool:
+        words1 = set(text1.lower().split())
+        words2 = set(text2.lower().split())
+        if not words1 or not words2:
+            return False
+        common = words1 & words2
+        similarity = len(common) / min(len(words1), len(words2))
+        return similarity > 0.5
+    
+    def _is_duplicate(self, news_item: NewsItem) -> bool:
+        for h in self.published_hashes:
+            for recent in self._recent_texts:
+                if self._is_similar(news_item.text, recent):
+                    return True
+        return False
+    
     def collect_news(self) -> List[NewsItem]:
-        return self.collect_channel_news()
+        news = self.collect_channel_news()
+        
+        unique = []
+        seen_texts = []
+        for item in news:
+            is_dup = False
+            for existing in seen_texts:
+                if self._is_similar(item.text, existing):
+                    is_dup = True
+                    break
+            
+            if not is_dup:
+                unique.append(item)
+                seen_texts.append(item.text)
+        
+        return unique[:10]
     
     def mark_as_published(self, news_item: NewsItem):
         self.published_hashes.add(news_item.hash)
+        self._recent_texts.append(news_item.text)
+        if len(self._recent_texts) > 50:
+            self._recent_texts = self._recent_texts[-50:]
         self._save_published_hashes()
